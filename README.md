@@ -114,3 +114,24 @@ npm run preview
 ```
 
 Learn more in the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction).
+
+## Deploy to production
+
+The GitHub Actions workflow at `.github/workflows/deploy.yml` builds the
+production Docker image, checks that the container serves the home page,
+publishes the tested image to GHCR, and deploys its commit tag to the VPS.
+It runs on pushes to `main` and can also be started manually.
+
+Configure these repository secrets, matching the API deployment:
+
+- `VPS_SSH_KEY` — base64-encoded private SSH key.
+- `VPS_KNOWN_HOSTS` — pinned SSH known-hosts entry for the VPS.
+- `VPS_HOST`, `VPS_PORT`, and `VPS_USER` — VPS connection details.
+
+The VPS must have `/usr/local/bin/se-frontend-deploy` installed and permitted
+for passwordless `sudo`. It must pull
+`ghcr.io/<owner>/<frontend-repository>:<commit-sha>` and run the production
+container with `NUXT_PUBLIC_API_BASE_URL` set to the public API URL. Configure
+the API to allow the production frontend origin in its CORS settings. The
+frontend deployment script is separate from the API deployment script so the
+two services can be released independently.
