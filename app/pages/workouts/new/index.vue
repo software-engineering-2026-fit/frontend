@@ -346,12 +346,13 @@ async function createWorkout() {
         <p v-if="!builder.exercises.value.length" class="mt-4 rounded-xl bg-slate-50 px-4 py-5 text-center text-sm text-slate-500">
           Select an exercise to add it to your plan.
         </p>
-        <ol v-else class="mt-4 space-y-2">
+        <ol v-else class="mt-4 space-y-2 ">
           <li
             v-for="(item, index) in builder.exercises.value"
             :key="item.exercise.id"
-            class="flex items-center gap-3 rounded-xl bg-violet-50/70 px-3 py-2.5"
+            class="flex flex-col items-center gap-3 rounded-xl bg-violet-50/70 px-3 py-2.5"
           >
+            <div class="flex gap-3 items-center">
             <span class="grid size-7 shrink-0 place-items-center rounded-lg bg-white text-xs font-bold text-violet-800">{{ index + 1 }}</span>
             <span class="min-w-0 flex-1 truncate text-sm font-medium text-slate-800">{{ item.exercise.name }}</span>
             <button
@@ -362,6 +363,12 @@ async function createWorkout() {
             >
               ×
             </button>
+            </div>
+              <textarea
+                v-model="item.description"
+                class="mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-normal outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
+                rows="2"
+              />
           </li>
         </ol>
         <p v-if="createError" class="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800" role="alert">

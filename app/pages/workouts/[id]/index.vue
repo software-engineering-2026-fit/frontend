@@ -82,10 +82,7 @@ onMounted(async () => {
         <div v-else>
           <div class="hidden grid-cols-[minmax(0,1fr)_120px_100px_100px_100px] gap-4 bg-slate-50 px-7 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 sm:grid">
             <span>Exercise</span>
-            <span>Weight</span>
-            <span>Reps</span>
-            <span>Sets</span>
-            <span>Effort</span>
+            <span>description</span>
           </div>
           <ol class="divide-y divide-slate-100">
             <li v-for="(item, index) in exercises" :key="item.exercise.id" class="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_120px_100px_100px_100px] sm:items-center sm:gap-4 sm:px-7">
@@ -98,20 +95,8 @@ onMounted(async () => {
                   </p>
                 </div>
               </div>
-              <div class="grid grid-cols-2 gap-3 text-sm sm:contents">
-                <span class="sm:hidden text-xs text-slate-500">
-                  Weight <strong class="ml-1 font-semibold text-slate-800">{{ item.weight_kg ?? '—' }}<template v-if="item.weight_kg !== null"> kg</template></strong>
-                </span>
-                <span class="sm:hidden text-xs text-slate-500">Reps <strong class="ml-1 font-semibold text-slate-800">{{ item.reps ?? '—' }}</strong></span>
-                <span class="sm:hidden text-xs text-slate-500">Sets <strong class="ml-1 font-semibold text-slate-800">{{ item.sets ?? '—' }}</strong></span>
-                <span class="sm:hidden text-xs text-slate-500">Effort <strong class="ml-1 font-semibold text-slate-800">{{ item.exhaustion_level ?? '—' }}</strong></span>
-              </div>
-              <span class="hidden text-sm font-medium text-slate-700 sm:block">
-                {{ item.weight_kg === null ? '—' : `${item.weight_kg} kg` }}
-              </span>
-              <span class="hidden text-sm font-medium text-slate-700 sm:block">{{ item.reps ?? '—' }}</span>
-              <span class="hidden text-sm font-medium text-slate-700 sm:block">{{ item.sets ?? '—' }}</span>
-              <span class="hidden text-sm font-medium text-slate-700 sm:block">{{ item.exhaustion_level ?? '—' }}</span>
+              
+              <span class="hidden text-sm font-medium text-slate-700 sm:block">{{ item.description ?? '—' }}</span>
             </li>
           </ol>
         </div>

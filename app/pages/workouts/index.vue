@@ -51,7 +51,6 @@ onMounted(() => {
       <div class="flex flex-wrap items-center justify-between gap-3 border-b border-violet-100 bg-gradient-to-r from-violet-50 to-fuchsia-50 px-5 py-4 sm:px-7">
         <div>
           <h2 id="active-title" class="text-lg font-bold text-slate-900">Active plans</h2>
-          <p class="mt-0.5 text-xs text-slate-500">Your personal training library</p>
         </div>
         <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-violet-800 ring-1 ring-violet-100">
           {{ workoutData.workouts.value.length }}
@@ -158,14 +157,7 @@ onMounted(() => {
           <span class="text-xs text-slate-400">Synced with the API</span>
         </div>
         <ol class="divide-y divide-slate-100">
-          <li
-            v-for="(log, index) in workoutData.workoutHistory.value"
-            :key="`${log.workoutId}-${log.date}-${index}`"
-            class="flex items-center justify-between gap-3 py-3 text-sm"
-          >
-            <span class="font-medium text-slate-700">{{ log.name }}</span>
-            <time class="shrink-0 text-xs text-slate-500" :datetime="log.date">{{ workoutData.formatDate(log.date) }}</time>
-          </li>
+          
         </ol>
       </div>
       </div>
