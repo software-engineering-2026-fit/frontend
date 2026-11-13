@@ -195,6 +195,25 @@ export function useAuth() {
     errorMessage.value = null
   }
 
+  async function editUserProfile(name: string) {
+    if (!user.value) {
+      throw new Error('No user is currently signed in.')
+    }
+
+    const form = new URLSearchParams({
+      new_username: name.trim()
+    })
+
+    await requestApi('/users/edit/username', {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${getToken()}`
+      },
+      body: form
+    })
+    
+  }
   return {
     user,
     isInitialized,
@@ -206,9 +225,13 @@ export function useAuth() {
     initialize,
     signIn,
     register,
-    signOut
+    signOut,
+    editUserProfile
   }
+
 }
+
+
 
 export function messageFrom(error: unknown): string {
   if (error instanceof Error && error.message) {

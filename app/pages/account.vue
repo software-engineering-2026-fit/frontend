@@ -7,6 +7,20 @@ async function signOut() {
   auth.signOut()
   await navigateTo('/login')
 }
+
+let editMode = ref(false)
+
+async function saveChanges() {
+    
+  try {
+    await auth.editUserProfile(auth.user.value?.name)
+  } catch (error) {
+    console.error('Error saving changes:', error)
+  } finally {
+    editMode.value = false
+  }
+}
+
 </script>
 
 <template>
@@ -24,7 +38,13 @@ async function signOut() {
         </span>
         <div class="min-w-0">
           <p class="text-xs font-semibold uppercase tracking-wider text-violet-700">Profile</p>
-          <h2 class="mt-1 truncate text-xl font-bold text-slate-900">{{ auth.user.value?.name }}</h2>
+          <h2 v-if="!editMode" class="mt-1 truncate text-xl font-bold text-slate-900">{{ auth.user.value?.name }}</h2>
+          <input
+            v-else
+            v-model="auth.user.value.name"
+            type="text"
+            class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500 sm:text-base"
+          />
           <p class="mt-0.5 truncate text-sm text-slate-500">{{ auth.user.value?.email }}</p>
         </div>
       </div>
@@ -41,11 +61,48 @@ async function signOut() {
           type="button"
           @click="signOut"
         >
+
+      
+
           <svg class="size-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <path d="M8 3H4.5A1.5 1.5 0 0 0 3 4.5v11A1.5 1.5 0 0 0 4.5 17H8m4-3 4-4-4-4m4 4H7" />
           </svg>
           <span>Sign out of Fit</span>
         </button>
+
+        <button 
+          v-if="!editMode"
+          class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 text-sm font-semibold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 sm:w-auto"
+          type="button"
+          @click="editMode=true"
+        >
+          <svg class="size-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M5 13l4 4L19 7" />
+          </svg>
+          <span>Edit Profile</span>
+        </button>
+        <div v-else class="flex gap-4">
+          <button
+            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 text-sm font-semibold text-green-700 transition hover:border-green-300 hover:bg-green-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500 sm:w-auto"
+            type="button"
+            @click="saveChanges()"
+          >
+            <svg class="size-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Save Changes</span>
+          </button>
+          <button
+            class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm font-semibold text-gray-700 transition hover:border-gray-300 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500 sm:w-auto"
+            type="button"
+            @click="editMode=false"
+          >
+            <svg class="size-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Cancel Changes</span>
+          </button>
+        </div>
       </div>
     </section>
   </main>
