@@ -30,7 +30,7 @@ onMounted(() => {
       </div>
       <div class="flex items-center gap-3">
         <div class="hidden rounded-2xl border border-violet-100 bg-white/80 px-5 py-3 text-right shadow-sm sm:block">
-          <span class="block text-2xl font-bold tracking-tight text-violet-800">
+          <span class="block text-2xl font-bold text-center tracking-tight text-violet-800">
             {{ workoutData.workouts.value.length }}
           </span>
           <span class="text-xs font-medium text-slate-500">workout plans</span>

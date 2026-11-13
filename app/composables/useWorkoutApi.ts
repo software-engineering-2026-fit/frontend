@@ -35,6 +35,8 @@ export interface WorkoutSessionLog {
 export interface WorkoutSession {
   id: string
   user_workout_id: string
+  workout_id: string
+  workout_name: string
   date: string
   ended_at: string | null
   logs: WorkoutSessionLog[]
@@ -131,6 +133,8 @@ function isWorkoutSession(value: unknown): value is WorkoutSession {
     isRecord(value)
     && typeof value.id === 'string'
     && typeof value.user_workout_id === 'string'
+    && typeof value.workout_id === 'string'
+    && typeof value.workout_name === 'string'
     && typeof value.date === 'string'
     && !Number.isNaN(Date.parse(value.date))
     && (value.ended_at === null || (
@@ -298,6 +302,14 @@ export function useWorkoutApi() {
     return result
   }
 
+  async function getWorkoutSession(sessionId: string): Promise<WorkoutSession> {
+    const result = await request(`/workout-sessions/${encodeURIComponent(sessionId)}`)
+    if (!isWorkoutSession(result)) {
+      throw new Error('The API returned an invalid workout session.')
+    }
+    return result
+  }
+
   async function createWorkoutSession(
     workoutId: string,
     date: string
@@ -331,6 +343,29 @@ export function useWorkoutApi() {
     return result
   }
 
+  async function updateWorkoutSessionLog(
+    sessionId: string,
+    logId: string,
+    data: WorkoutSessionLogInput
+  ): Promise<WorkoutSessionLog> {
+    const result = await request(
+      `/workout-sessions/${encodeURIComponent(sessionId)}/logs/${encodeURIComponent(logId)}`,
+      {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          weight: data.weight,
+          reps: data.reps,
+          exhaustion_level: data.exhaustion_level
+        })
+      }
+    )
+    if (!isWorkoutSessionLog(result)) {
+      throw new Error('The API returned an invalid updated workout session log.')
+    }
+    return result
+  }
+
   async function endWorkoutSession(sessionId: string): Promise<WorkoutSession> {
     const result = await request(
       `/workout-sessions/${encodeURIComponent(sessionId)}/end`,
@@ -351,8 +386,10 @@ export function useWorkoutApi() {
     createWorkout,
     addWorkoutExercise,
     getWorkoutSessions,
+    getWorkoutSession,
     createWorkoutSession,
     addWorkoutSessionLog,
+    updateWorkoutSessionLog,
     endWorkoutSession
   }
 }

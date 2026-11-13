@@ -27,7 +27,9 @@ function goToToday() {
 }
 
 function selectDate(date: Date) {
-  workoutData.logDate.value = dateKey(date)
+  const selectedDate = dateKey(date)
+  workoutData.logDate.value = selectedDate
+  workoutData.pendingLogDate.value = selectedDate
   navigateTo('/workouts')
 }
 

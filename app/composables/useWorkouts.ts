@@ -45,13 +45,12 @@ function dateForInput(value: string): string {
 }
 
 function toWorkoutLog(
-  session: WorkoutSession,
-  name: string
+  session: WorkoutSession
 ): WorkoutLog {
   return {
     id: session.id,
-    workoutId: session.user_workout_id,
-    name,
+    workoutId: session.workout_id,
+    name: session.workout_name,
     date: dateForInput(session.date),
     exercises: session.logs.map(log => ({
       exerciseId: log.exercise_id,
@@ -67,11 +66,13 @@ export function useWorkouts() {
   const api = useWorkoutApi()
   const workouts = useState<Workout[]>('workouts', () => [])
   const workoutLogs = useState<WorkoutLog[]>('workout-logs', () => [])
+  const activeSessions = useState<WorkoutLog[]>('active-workout-sessions', () => [])
   const isLoading = useState('workouts-loading', () => false)
   const isLoadingLogs = useState('workout-logs-loading', () => false)
   const errorMessage = useState<string | null>('workouts-error', () => null)
   const successMessage = useState<string | null>('workouts-success', () => null)
   const logDate = useState('workout-log-date', todayAsInputValue)
+  const pendingLogDate = useState<string | null>('pending-workout-log-date', () => null)
 
   async function loadWorkouts() {
     isLoading.value = true
@@ -91,21 +92,13 @@ export function useWorkouts() {
     errorMessage.value = null
 
     try {
-      const [sessions, availableWorkouts] = await Promise.all([
-        api.getWorkoutSessions(),
-        api.getWorkouts()
-      ])
-      const workoutNames = new Map(availableWorkouts.map(workout => [workout.id, workout.name]))
+      const sessions = await api.getWorkoutSessions()
       const completedSessions = sessions.filter(session => session.ended_at !== null)
-      const logs: WorkoutLog[] = []
-      for (const session of completedSessions) {
-        const workoutName = workoutNames.get(session.user_workout_id)
-        if (!workoutName) {
-          throw new Error('The API returned a session for a workout that could not be found.')
-        }
-        logs.push(toWorkoutLog(session, workoutName))
-      }
+      const inProgressSessions = sessions.filter(session => session.ended_at === null)
+      const logs = completedSessions.map(toWorkoutLog)
+      const active = inProgressSessions.map(toWorkoutLog)
       workoutLogs.value = logs.sort((a, b) => b.date.localeCompare(a.date))
+      activeSessions.value = active.sort((a, b) => b.date.localeCompare(a.date))
     } catch (error) {
       errorMessage.value = messageFrom(error)
     } finally {
@@ -152,7 +145,7 @@ export function useWorkouts() {
       }
 
       const completedSession = await api.endWorkoutSession(session.id)
-      const newLog = toWorkoutLog(completedSession, workout.name)
+      const newLog = toWorkoutLog(completedSession)
       workoutLogs.value = [
         newLog,
         ...workoutLogs.value.filter(item => item.id !== newLog.id)
@@ -182,11 +175,13 @@ export function useWorkouts() {
   return {
     workouts,
     workoutLogs,
+    activeSessions,
     isLoading,
     isLoadingLogs,
     errorMessage,
     successMessage,
     logDate,
+    pendingLogDate,
     sortedWorkouts,
     workoutHistory,
     loadWorkouts,
