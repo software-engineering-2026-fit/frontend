@@ -3,29 +3,20 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: ${NUXT_MODE:-dev}
+    command: ["npm", "run", "${NUXT_MODE:-dev}", "--", "--host", "0.0.0.0"]
     ports:
       - "3000:3000"
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       HOST: 0.0.0.0
       PORT: 3000
+    volumes:
+      - .:/app
+      - /app/node_modules
     healthcheck:
       test: ["CMD", "wget", "--spider", "--quiet", "http://127.0.0.1:3000/"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
-    develop:
-      watch:
-        - action: rebuild
-          path: ./app
-        - action: rebuild
-          path: ./public
-        - action: rebuild
-          path: ./nuxt.config.ts
-        - action: rebuild
-          path: ./tsconfig.json
-        - action: rebuild
-          path: ./package.json
-        - action: rebuild
-          path: ./Dockerfile

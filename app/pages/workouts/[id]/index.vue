@@ -71,7 +71,7 @@ onMounted(async () => {
         <div class="flex items-center justify-between border-b border-violet-100 px-5 py-4 sm:px-7">
           <div>
             <h2 id="exercise-list-title" class="text-lg font-bold text-slate-900">Exercise plan</h2>
-            <p class="mt-0.5 text-sm text-slate-500">Targets for your next session</p>
+            <p class="mt-0.5 text-sm text-slate-500">Exercises and plan notes</p>
           </div>
           <span class="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-800">{{ exercises.length }} total</span>
         </div>
@@ -80,12 +80,12 @@ onMounted(async () => {
           This plan has no exercises yet.
         </p>
         <div v-else>
-          <div class="hidden grid-cols-[minmax(0,1fr)_120px_100px_100px_100px] gap-4 bg-slate-50 px-7 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 sm:grid">
+          <div class="hidden grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 bg-slate-50 px-7 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 sm:grid">
             <span>Exercise</span>
-            <span>description</span>
+            <span>Description</span>
           </div>
           <ol class="divide-y divide-slate-100">
-            <li v-for="(item, index) in exercises" :key="item.exercise.id" class="grid gap-3 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_120px_100px_100px_100px] sm:items-center sm:gap-4 sm:px-7">
+            <li v-for="(item, index) in exercises" :key="item.exercise.id" class="grid gap-2 px-5 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center sm:gap-4 sm:px-7">
               <div class="flex min-w-0 items-center gap-3">
                 <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-violet-100 text-sm font-bold text-violet-800">{{ index + 1 }}</span>
                 <div class="min-w-0">
@@ -95,15 +95,14 @@ onMounted(async () => {
                   </p>
                 </div>
               </div>
-              
-              <span class="hidden text-sm font-medium text-slate-700 sm:block">{{ item.description ?? '—' }}</span>
+              <span class="text-sm text-slate-600">{{ item.description || 'No plan notes' }}</span>
             </li>
           </ol>
         </div>
 
         <div class="border-t border-slate-100 bg-slate-50/70 px-5 py-4 sm:px-7">
           <p class="text-xs leading-5 text-slate-500">
-            Workout targets and exercise details are synced with the API.
+            Exercise notes are synced with the API.
           </p>
         </div>
       </section>

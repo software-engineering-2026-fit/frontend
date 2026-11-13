@@ -1,5 +1,6 @@
 import { messageFrom } from './useAuth'
 import { useWorkoutApi } from './useWorkoutApi'
+import type { WorkoutSession } from './useWorkoutApi'
 
 export interface Workout {
   id: string
@@ -12,8 +13,7 @@ export interface WorkoutLogExercise {
   exerciseId: string
   exerciseName: string
   weight: number | null
-  sets: number
-  reps: number
+  reps: number | null
   exhaustionLevel: number | null
 }
 
@@ -29,6 +29,38 @@ function todayAsInputValue(): string {
   const date = new Date()
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
   return localDate.toISOString().slice(0, 10)
+}
+
+function dateForApi(value: string): string {
+  const [year, month, day] = value.split('-').map(Number)
+  return new Date(year, month - 1, day, 12).toISOString()
+}
+
+function dateForInput(value: string): string {
+  const date = new Date(value)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function toWorkoutLog(
+  session: WorkoutSession,
+  name: string
+): WorkoutLog {
+  return {
+    id: session.id,
+    workoutId: session.user_workout_id,
+    name,
+    date: dateForInput(session.date),
+    exercises: session.logs.map(log => ({
+      exerciseId: log.exercise_id,
+      exerciseName: log.exercise_name,
+      weight: log.weight,
+      reps: log.reps,
+      exhaustionLevel: log.exhaustion_level
+    }))
+  }
 }
 
 export function useWorkouts() {
@@ -59,20 +91,21 @@ export function useWorkouts() {
     errorMessage.value = null
 
     try {
-      workoutLogs.value = (await api.getWorkoutLogs()).map(log => ({
-        id: log.id,
-        workoutId: log.workout_id,
-        name: log.workout_name,
-        date: log.performed_on,
-        exercises: log.exercises.map(exercise => ({
-          exerciseId: exercise.exercise.id,
-          exerciseName: exercise.exercise.name,
-          weight: exercise.weight_kg,
-          sets: exercise.sets,
-          reps: exercise.reps,
-          exhaustionLevel: exercise.exhaustion_level
-        }))
-      }))
+      const [sessions, availableWorkouts] = await Promise.all([
+        api.getWorkoutSessions(),
+        api.getWorkouts()
+      ])
+      const workoutNames = new Map(availableWorkouts.map(workout => [workout.id, workout.name]))
+      const completedSessions = sessions.filter(session => session.ended_at !== null)
+      const logs: WorkoutLog[] = []
+      for (const session of completedSessions) {
+        const workoutName = workoutNames.get(session.user_workout_id)
+        if (!workoutName) {
+          throw new Error('The API returned a session for a workout that could not be found.')
+        }
+        logs.push(toWorkoutLog(session, workoutName))
+      }
+      workoutLogs.value = logs.sort((a, b) => b.date.localeCompare(a.date))
     } catch (error) {
       errorMessage.value = messageFrom(error)
     } finally {
@@ -87,7 +120,7 @@ export function useWorkouts() {
   }
 
   function formatDate(value: string): string {
-    const date = new Date(`${value}T00:00:00`)
+    const date = new Date(`${value.slice(0, 10)}T00:00:00`)
     const parts = new Intl.DateTimeFormat('en-GB', {
       day: 'numeric',
       month: 'numeric',
@@ -101,40 +134,36 @@ export function useWorkouts() {
     workout: Workout,
     exercises: WorkoutLogExercise[]
   ): Promise<boolean> {
+    let sessionId: string | null = null
     try {
-      const log = await api.createWorkoutLog({
-        workout_id: workout.id,
-        performed_on: logDate.value || todayAsInputValue(),
-        exercises: exercises.map(exercise => ({
+      const session = await api.createWorkoutSession(
+        workout.id,
+        dateForApi(logDate.value || todayAsInputValue())
+      )
+      sessionId = session.id
+
+      for (const exercise of exercises) {
+        await api.addWorkoutSessionLog(session.id, {
           exercise_id: exercise.exerciseId,
-          sets: exercise.sets,
+          weight: exercise.weight,
           reps: exercise.reps,
-          weight_kg: exercise.weight,
           exhaustion_level: exercise.exhaustionLevel
-        }))
-      })
+        })
+      }
+
+      const completedSession = await api.endWorkoutSession(session.id)
+      const newLog = toWorkoutLog(completedSession, workout.name)
       workoutLogs.value = [
-        {
-          id: log.id,
-          workoutId: log.workout_id,
-          name: log.workout_name,
-          date: log.performed_on,
-          exercises: log.exercises.map(exercise => ({
-            exerciseId: exercise.exercise.id,
-            exerciseName: exercise.exercise.name,
-            weight: exercise.weight_kg,
-            sets: exercise.sets,
-            reps: exercise.reps,
-            exhaustionLevel: exercise.exhaustion_level
-          }))
-        },
-        ...workoutLogs.value.filter(item => item.id !== log.id)
+        newLog,
+        ...workoutLogs.value.filter(item => item.id !== newLog.id)
       ].sort((a, b) => b.date.localeCompare(a.date))
-      successMessage.value = `${workout.name} logged for ${formatDate(log.performed_on)}.`
+      successMessage.value = `${workout.name} logged for ${formatDate(newLog.date)}.`
       errorMessage.value = null
       return true
     } catch (error) {
-      errorMessage.value = `Could not save this workout to the API. ${messageFrom(error)}`
+      errorMessage.value = sessionId
+        ? `The workout session was started but could not be fully saved or completed. ${messageFrom(error)}`
+        : `Could not save this workout to the API. ${messageFrom(error)}`
       successMessage.value = null
       return false
     }

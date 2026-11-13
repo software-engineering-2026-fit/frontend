@@ -6,8 +6,7 @@ import type { WorkoutExercise } from '../../../composables/useWorkoutApi'
 interface SessionExercise {
   planned: WorkoutExercise
   weight: number | ''
-  sets: number
-  reps: number
+  reps: number | ''
   exhaustionLevel: number | ''
 }
 
@@ -35,10 +34,7 @@ const isValid = computed(() => {
     && validDate
     && exercises.value.length > 0
     && exercises.value.every(item =>
-      Number.isInteger(item.sets)
-      && item.sets > 0
-      && Number.isInteger(item.reps)
-      && item.reps > 0
+      (item.reps === '' || (Number.isInteger(item.reps) && item.reps > 0))
       && (item.weight === '' || (Number.isFinite(item.weight) && item.weight >= 0))
       && (
         item.exhaustionLevel === ''
@@ -58,10 +54,9 @@ onMounted(async () => {
     workout.value = workoutResult
     exercises.value = planExercises.map(planned => ({
       planned,
-      weight: planned.weight_kg ?? '',
-      sets: planned.sets ?? 3,
-      reps: planned.reps ?? 10,
-      exhaustionLevel: planned.exhaustion_level ?? ''
+      weight: '',
+      reps: '',
+      exhaustionLevel: ''
     }))
   } catch (error) {
     errorMessage.value = messageFrom(error)
@@ -81,8 +76,7 @@ async function saveSession() {
     exerciseId: item.planned.exercise.id,
     exerciseName: item.planned.exercise.name,
     weight: item.weight === '' ? null : item.weight,
-    sets: item.sets,
-    reps: item.reps,
+    reps: item.reps === '' ? null : item.reps,
     exhaustionLevel: item.exhaustionLevel === '' ? null : item.exhaustionLevel
   }))
 
@@ -150,12 +144,12 @@ async function saveSession() {
                 <span class="grid size-9 place-items-center rounded-xl bg-violet-100 text-sm font-bold text-violet-800">{{ index + 1 }}</span>
                 <div>
                   <h3 class="font-semibold text-slate-900">{{ item.planned.exercise.name }}</h3>
-                  <p class="mt-0.5 text-xs text-slate-500">
-                    Planned: {{ item.planned.sets ?? '—' }} sets × {{ item.planned.reps ?? '—' }} reps
+                  <p v-if="item.planned.description" class="mt-0.5 text-xs text-slate-500">
+                    {{ item.planned.description }}
                   </p>
                 </div>
               </div>
-              <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <label class="text-xs font-semibold text-slate-700">
                   Weight (kg)
                   <input
@@ -168,23 +162,11 @@ async function saveSession() {
                   >
                 </label>
                 <label class="text-xs font-semibold text-slate-700">
-                  Reps per set
+                  Reps completed
                   <input
                     v-model.number="item.reps"
                     class="mt-1.5 min-h-11 w-full rounded-xl border border-slate-200 px-3 text-sm font-normal outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
                     min="1"
-                    required
-                    step="1"
-                    type="number"
-                  >
-                </label>
-                <label class="text-xs font-semibold text-slate-700">
-                  Sets completed
-                  <input
-                    v-model.number="item.sets"
-                    class="mt-1.5 min-h-11 w-full rounded-xl border border-slate-200 px-3 text-sm font-normal outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
-                    min="1"
-                    required
                     step="1"
                     type="number"
                   >

@@ -1,6 +1,6 @@
 # Nuxt 4 Docker Application
 
-This is a Nuxt 4 application that runs in a production Docker container.
+This is a Nuxt 4 application with a Docker-based development server and a production Docker image.
 The interface is styled with Tailwind CSS 4.
 
 ## Prerequisites
@@ -18,18 +18,18 @@ if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 docker compose up --build -d
 ```
 
-Then, from the frontend project directory, build and start the application:
+Then, from the frontend project directory, start Nuxt in development mode:
 
 ```powershell
 Set-Location ..\frontend
 docker compose up --build
 ```
 
-The application is available at [http://localhost:3000](http://localhost:3000).
+Compose reads `NUXT_MODE=dev` from `.env`, builds the Dockerfile's `dev` stage, and runs `npm run dev`. The project directory is mounted into the container, so Nuxt applies source changes without rebuilding the image. The application is available at [http://localhost:3000](http://localhost:3000).
 
 The login form sends the email as the OAuth2 `username` field to `/auth/token`, then loads the current user from `/auth/me`. Use **Create an account** on the login page to register through `/auth/register`; after registration, the app signs the new account in. The access token is kept in `sessionStorage` for the current browser tab. Workout plans, exercise selections, and completed-session metrics are stored by the API, not in browser storage. Plans can be created without target metrics. The API allows requests from `http://localhost:3000` and `http://127.0.0.1:3000`.
 
-The running API publishes its current schema at [http://localhost:8000/openapi.json](http://localhost:8000/openapi.json) and interactive documentation at [http://localhost:8000/docs](http://localhost:8000/docs). The workout flow uses `GET/POST /exercises/`, `GET/POST /workouts/`, `GET/POST /workouts/{workout_id}/exercises`, and `GET/POST /workout-logs/`.
+The running API publishes its current schema at [http://localhost:8000/openapi.json](http://localhost:8000/openapi.json) and interactive documentation at [http://localhost:8000/docs](http://localhost:8000/docs). The workout flow uses `GET/POST /exercises/`, `GET/POST /workouts/`, `GET/POST /workouts/{workout_id}/exercises`, and `/workout-sessions/` with per-session `/logs` and `/end` endpoints.
 
 ## Pages
 
@@ -75,17 +75,17 @@ Set-Location ..\api
 docker compose down
 ```
 
-## Develop with Compose Watch
+## Develop with Docker Compose
 
-Compose Watch rebuilds the container when application source files or configuration change. Start the container in watch mode:
+The Compose service uses Nuxt's development server and a bind mount for live updates. Vite polling is enabled so file saves are detected when the project is mounted from Windows. The tracked `.env` selects the `dev` Dockerfile stage and `npm run dev`. Start it with:
 
 ```powershell
-docker compose watch
+docker compose up
 ```
 
-The watch configuration monitors changes under `app/`, `public/`, `nuxt.config.ts`, `tsconfig.json`, `package.json`, and `Dockerfile`. Changes trigger a new image build and restart the container.
+Rebuild the image with `docker compose up --build` after changing dependencies.
 
-Press `Ctrl+C` to stop watch mode.
+Press `Ctrl+C` to stop the development server.
 
 ## Run Nuxt without Docker
 

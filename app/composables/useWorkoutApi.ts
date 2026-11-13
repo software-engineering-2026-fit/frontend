@@ -11,91 +11,133 @@ export interface Exercise {
 
 export interface WorkoutExercise {
   exercise: Exercise
-  sets: number | null
-  reps: number | null
-  weight_kg: number | null
-  exhaustion_level: number | null
+  description: string | null
 }
 
-export interface WorkoutLogExerciseInput {
+export interface WorkoutSessionLogInput {
   exercise_id: string
-  sets: number
-  reps: number
-  weight_kg: number | null
+  weight: number | null
+  reps: number | null
   exhaustion_level: number | null
 }
 
-export interface WorkoutLogResponse {
+export interface WorkoutSessionLog {
   id: string
-  workout_id: string
-  workout_name: string
-  performed_on: string
-  exercises: Array<{
-    exercise: Exercise
-    sets: number
-    reps: number
-    weight_kg: number | null
-    exhaustion_level: number | null
-  }>
+  workout_session_id: string
+  exercise_id: string
+  exercise_name: string
+  weight: number | null
+  reps: number | null
+  exhaustion_level: number | null
+  timestamp: string
+}
+
+export interface WorkoutSession {
+  id: string
+  user_workout_id: string
+  date: string
+  ended_at: string | null
+  logs: WorkoutSessionLog[]
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
-function isExercise(value: unknown): value is Exercise {
-  return (
-    isRecord(value)
-    && typeof value.id === 'string'
-    && typeof value.name === 'string'
-    && (typeof value.description === 'string' || value.description === null)
-    && (typeof value.muscle_group === 'string' || value.muscle_group === null)
-    && (typeof value.equipment === 'string' || value.equipment === null)
-  )
+function isNullableString(value: unknown): value is string | null | undefined {
+  return value === undefined || value === null || typeof value === 'string'
 }
 
-function isWorkout(value: unknown): value is Workout {
-  return (
-    isRecord(value)
-    && typeof value.id === 'string'
-    && typeof value.name === 'string'
-    && (typeof value.description === 'string' || value.description === null)
-    && typeof value.public === 'boolean'
-  )
+function normalizeExercise(value: unknown): Exercise | null {
+  if (
+    !isRecord(value)
+    || typeof value.id !== 'string'
+    || typeof value.name !== 'string'
+    || !isNullableString(value.description)
+    || !isNullableString(value.muscle_group)
+    || !isNullableString(value.equipment)
+  ) {
+    return null
+  }
+
+  return {
+    id: value.id,
+    name: value.name,
+    description: value.description ?? null,
+    muscle_group: value.muscle_group ?? null,
+    equipment: value.equipment ?? null
+  }
 }
 
-function isOptionalMetric(value: unknown): value is number | null {
+function normalizeWorkout(value: unknown): Workout | null {
+  if (
+    !isRecord(value)
+    || typeof value.id !== 'string'
+    || typeof value.name !== 'string'
+    || !isNullableString(value.description)
+    || (value.public !== undefined && typeof value.public !== 'boolean')
+  ) {
+    return null
+  }
+
+  return {
+    id: value.id,
+    name: value.name,
+    description: value.description ?? null,
+    public: value.public === true
+  }
+}
+
+function isNullableMetric(value: unknown): value is number | null {
   return value === null || (typeof value === 'number' && Number.isFinite(value))
 }
 
-function isWorkoutExercise(value: unknown): value is WorkoutExercise {
-  return (
-    isRecord(value)
-    && isExercise(value.exercise)
-    && (typeof value.sets === 'number' || value.sets === null)
-    && (typeof value.reps === 'number' || value.reps === null)
-    && isOptionalMetric(value.weight_kg)
-    && (typeof value.exhaustion_level === 'number' || value.exhaustion_level === null)
-  )
+function normalizeWorkoutExercise(value: unknown): WorkoutExercise | null {
+  if (
+    !isRecord(value)
+    || (typeof value.description !== 'string' && value.description !== null)
+  ) {
+    return null
+  }
+
+  const exercise = normalizeExercise(value.exercise)
+  if (!exercise) {
+    return null
+  }
+
+  return {
+    exercise,
+    description: value.description
+  }
 }
 
-function isWorkoutLogResponse(value: unknown): value is WorkoutLogResponse {
+function isWorkoutSessionLog(value: unknown): value is WorkoutSessionLog {
   return (
     isRecord(value)
     && typeof value.id === 'string'
-    && typeof value.workout_id === 'string'
-    && typeof value.workout_name === 'string'
-    && typeof value.performed_on === 'string'
-    && !Number.isNaN(Date.parse(value.performed_on))
-    && Array.isArray(value.exercises)
-    && value.exercises.every(
-      item => isRecord(item)
-        && isExercise(item.exercise)
-        && typeof item.sets === 'number'
-        && typeof item.reps === 'number'
-        && isOptionalMetric(item.weight_kg)
-        && (typeof item.exhaustion_level === 'number' || item.exhaustion_level === null)
-    )
+    && typeof value.workout_session_id === 'string'
+    && typeof value.exercise_id === 'string'
+    && typeof value.exercise_name === 'string'
+    && isNullableMetric(value.weight)
+    && (value.reps === null || Number.isInteger(value.reps))
+    && (value.exhaustion_level === null || Number.isInteger(value.exhaustion_level))
+    && typeof value.timestamp === 'string'
+    && !Number.isNaN(Date.parse(value.timestamp))
+  )
+}
+
+function isWorkoutSession(value: unknown): value is WorkoutSession {
+  return (
+    isRecord(value)
+    && typeof value.id === 'string'
+    && typeof value.user_workout_id === 'string'
+    && typeof value.date === 'string'
+    && !Number.isNaN(Date.parse(value.date))
+    && (value.ended_at === null || (
+      typeof value.ended_at === 'string' && !Number.isNaN(Date.parse(value.ended_at))
+    ))
+    && Array.isArray(value.logs)
+    && value.logs.every(isWorkoutSessionLog)
   )
 }
 
@@ -123,8 +165,10 @@ export function useWorkoutApi() {
   }
 
   async function getWorkout(workoutId: string): Promise<Workout> {
-    const result = await request(`/workouts/${encodeURIComponent(workoutId)}`)
-    if (!isWorkout(result)) {
+    const result = normalizeWorkout(
+      await request(`/workouts/${encodeURIComponent(workoutId)}`)
+    )
+    if (!result) {
       throw new Error('The API returned an invalid workout.')
     }
     return result
@@ -132,18 +176,36 @@ export function useWorkoutApi() {
 
   async function getWorkouts(): Promise<Workout[]> {
     const result = await request('/workouts/')
-    if (!Array.isArray(result) || !result.every(isWorkout)) {
+    if (!Array.isArray(result)) {
       throw new Error('The API returned an invalid workout list.')
     }
-    return result
+
+    const workouts: Workout[] = []
+    for (const item of result) {
+      const workout = normalizeWorkout(item)
+      if (!workout) {
+        throw new Error('The API returned an invalid workout list.')
+      }
+      workouts.push(workout)
+    }
+    return workouts
   }
 
   async function getWorkoutExercises(workoutId: string): Promise<WorkoutExercise[]> {
     const result = await request(`/workouts/${encodeURIComponent(workoutId)}/exercises`)
-    if (!Array.isArray(result) || !result.every(isWorkoutExercise)) {
+    if (!Array.isArray(result)) {
       throw new Error('The API returned an invalid workout exercise list.')
     }
-    return result
+
+    const workoutExercises: WorkoutExercise[] = []
+    for (const item of result) {
+      const workoutExercise = normalizeWorkoutExercise(item)
+      if (!workoutExercise) {
+        throw new Error('The API returned an invalid workout exercise list.')
+      }
+      workoutExercises.push(workoutExercise)
+    }
+    return workoutExercises
   }
 
   async function searchExercises(
@@ -151,34 +213,45 @@ export function useWorkoutApi() {
     limit = 100,
     offset = 0
   ): Promise<Exercise[]> {
-    const params = new URLSearchParams({
-      limit: String(limit),
-      offset: String(offset)
-    })
-    if (query.trim()) {
-      params.set('q', query.trim())
-    }
-    const result = await request(`/exercises/?${params.toString()}`)
-    if (!Array.isArray(result) || !result.every(isExercise)) {
+    const result = await request('/exercises/')
+    if (!Array.isArray(result)) {
       throw new Error('The API returned an invalid exercise list.')
     }
-    return result
+
+    const exercises: Exercise[] = []
+    for (const item of result) {
+      const exercise = normalizeExercise(item)
+      if (!exercise) {
+        throw new Error('The API returned an invalid exercise list.')
+      }
+      exercises.push(exercise)
+    }
+
+    const normalizedQuery = query.trim().toLocaleLowerCase()
+    return exercises
+      .filter(exercise => !normalizedQuery || [
+        exercise.name,
+        exercise.description,
+        exercise.muscle_group,
+        exercise.equipment
+      ].some(value => value?.toLocaleLowerCase().includes(normalizedQuery)))
+      .slice(offset, offset + limit)
   }
 
   async function createExercise(exercise: Omit<Exercise, 'id'>): Promise<Exercise> {
-    const result = await request('/exercises/', {
+    const result = normalizeExercise(await request('/exercises/', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(exercise)
-    })
-    if (!isExercise(result)) {
+    }))
+    if (!result) {
       throw new Error('The API returned an invalid exercise.')
     }
     return result
   }
 
   async function createWorkout(name: string): Promise<Workout> {
-    const result = await request('/workouts/', {
+    const result = normalizeWorkout(await request('/workouts/', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
@@ -186,8 +259,8 @@ export function useWorkoutApi() {
         description: null,
         public: false
       })
-    })
-    if (!isWorkout(result)) {
+    }))
+    if (!result) {
       throw new Error('The API returned an invalid workout.')
     }
     return result
@@ -195,7 +268,8 @@ export function useWorkoutApi() {
 
   async function addWorkoutExercise(
     workoutId: string,
-    exerciseId: string
+    exerciseId: string,
+    description: string | null
   ): Promise<void> {
     const result = await request(
       `/workouts/${encodeURIComponent(workoutId)}/exercises`,
@@ -203,35 +277,67 @@ export function useWorkoutApi() {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          exercise_id: exerciseId
+          exercise_id: exerciseId,
+          description
         })
       }
     )
-    if (!Array.isArray(result) || !result.every(isWorkoutExercise)) {
+    if (
+      !Array.isArray(result)
+      || !result.every(item => normalizeWorkoutExercise(item) !== null)
+    ) {
       throw new Error('The API returned an invalid workout exercise list.')
     }
   }
 
-  async function getWorkoutLogs(): Promise<WorkoutLogResponse[]> {
-    const result = await request('/workout-logs/')
-    if (!Array.isArray(result) || !result.every(isWorkoutLogResponse)) {
-      throw new Error('The API returned an invalid workout log list.')
+  async function getWorkoutSessions(): Promise<WorkoutSession[]> {
+    const result = await request('/workout-sessions/')
+    if (!Array.isArray(result) || !result.every(isWorkoutSession)) {
+      throw new Error('The API returned an invalid workout session list.')
     }
     return result
   }
 
-  async function createWorkoutLog(data: {
-    workout_id: string
-    performed_on: string
-    exercises: WorkoutLogExerciseInput[]
-  }): Promise<WorkoutLogResponse> {
-    const result = await request('/workout-logs/', {
+  async function createWorkoutSession(
+    workoutId: string,
+    date: string
+  ): Promise<WorkoutSession> {
+    const result = await request('/workout-sessions/', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify({ workout_id: workoutId, date })
     })
-    if (!isWorkoutLogResponse(result)) {
-      throw new Error('The API returned an invalid workout log.')
+    if (!isWorkoutSession(result)) {
+      throw new Error('The API returned an invalid workout session.')
+    }
+    return result
+  }
+
+  async function addWorkoutSessionLog(
+    sessionId: string,
+    data: WorkoutSessionLogInput
+  ): Promise<WorkoutSessionLog> {
+    const result = await request(
+      `/workout-sessions/${encodeURIComponent(sessionId)}/logs`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(data)
+      }
+    )
+    if (!isWorkoutSessionLog(result)) {
+      throw new Error('The API returned an invalid workout session log.')
+    }
+    return result
+  }
+
+  async function endWorkoutSession(sessionId: string): Promise<WorkoutSession> {
+    const result = await request(
+      `/workout-sessions/${encodeURIComponent(sessionId)}/end`,
+      { method: 'POST' }
+    )
+    if (!isWorkoutSession(result)) {
+      throw new Error('The API returned an invalid completed workout session.')
     }
     return result
   }
@@ -244,7 +350,9 @@ export function useWorkoutApi() {
     createExercise,
     createWorkout,
     addWorkoutExercise,
-    getWorkoutLogs,
-    createWorkoutLog
+    getWorkoutSessions,
+    createWorkoutSession,
+    addWorkoutSessionLog,
+    endWorkoutSession
   }
 }

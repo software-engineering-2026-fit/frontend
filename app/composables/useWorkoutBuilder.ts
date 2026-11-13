@@ -2,6 +2,7 @@ import type { Exercise } from './useWorkoutApi'
 
 export interface WorkoutDraftExercise {
   exercise: Exercise
+  description: string | null
 }
 
 export function useWorkoutBuilder() {
@@ -16,7 +17,7 @@ export function useWorkoutBuilder() {
       exercises.value.splice(existingIndex, 1)
       return
     }
-    exercises.value.push({ exercise })
+    exercises.value.push({ exercise, description: null })
   }
 
   function clear() {

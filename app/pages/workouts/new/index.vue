@@ -129,7 +129,11 @@ async function createWorkout() {
 
     for (const item of selectedExercises) {
       try {
-        await api.addWorkoutExercise(workout.id, item.exercise.id)
+        await api.addWorkoutExercise(
+          workout.id,
+          item.exercise.id,
+          item.description?.trim() || null
+        )
         savedExerciseCount += 1
       } catch (error) {
         createError.value = `The plan "${workout.name}" was created, but only ${savedExerciseCount} of ${selectedExercises.length} exercises were added. ${messageFrom(error)}`
@@ -161,6 +165,7 @@ async function createWorkout() {
     <header class="mt-7 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <p class="mb-2 text-xs font-bold tracking-[0.18em] text-violet-700">BUILD YOUR PLAN</p>
+        {{ builder.exercises }}
         <h1 class="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Create a workout</h1>
         <p class="mt-2 max-w-xl text-sm leading-6 text-slate-600 sm:text-base">
           Name your plan and choose the exercises you want to train.
