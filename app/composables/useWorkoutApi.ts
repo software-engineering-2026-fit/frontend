@@ -147,6 +147,7 @@ function isWorkoutSession(value: unknown): value is WorkoutSession {
 
 export function useWorkoutApi() {
   const auth = useAuth()
+  const apiBaseUrl = useRuntimeConfig().public.apiBaseUrl
 
   async function request(path: string, init: RequestInit = {}): Promise<unknown> {
     const token = auth.getToken()
@@ -158,7 +159,7 @@ export function useWorkoutApi() {
     headers.set('authorization', `Bearer ${token}`)
 
     try {
-      return await requestApi(path, { ...init, headers })
+      return await requestApi(apiBaseUrl, path, { ...init, headers })
     } catch (error) {
       if (error instanceof ApiRequestError && error.statusCode === 401) {
         auth.signOut()

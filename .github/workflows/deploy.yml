@@ -1,0 +1,129 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+concurrency:
+  group: frontend-production-deployment
+  cancel-in-progress: false
+
+jobs:
+  build-and-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: se-frontend:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Start test environment
+        run: docker compose -f .github/compose.ci.yaml up -d
+
+      - name: Check frontend health
+        run: |
+          set -e
+
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:3000/ > /dev/null; then
+              echo "Frontend is healthy."
+              exit 0
+            fi
+
+            echo "Waiting for frontend..."
+            sleep 2
+          done
+
+          echo "Frontend failed health check."
+          docker compose -f .github/compose.ci.yaml logs
+          exit 1
+
+      - name: Stop test environment
+        if: always()
+        run: docker compose -f .github/compose.ci.yaml down
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag tested image
+        run: docker tag se-frontend:test ghcr.io/${{ github.repository }}:${{ github.sha }}
+
+      - name: Push tested image
+        run: docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
+
+  deploy:
+    name: Deploy to production
+    needs:
+      - build-and-test
+
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production
+
+    steps:
+      - name: Configure SSH
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY_B64: ${{ secrets.VPS_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s' "$SSH_PRIVATE_KEY_B64" \
+            | base64 --decode \
+            > ~/.ssh/id_ed25519
+
+          chmod 600 ~/.ssh/id_ed25519
+
+          printf '%s\n' "$SSH_KNOWN_HOSTS" \
+            > ~/.ssh/known_hosts
+
+          chmod 600 ~/.ssh/known_hosts
+
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
+          ssh-keygen -lf ~/.ssh/id_ed25519
+
+      - name: Deploy to VPS
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          ssh \
+            -p "$VPS_PORT" \
+            -i ~/.ssh/id_ed25519 \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            "$VPS_USER@$VPS_HOST" \
+            "sudo -n /usr/local/bin/se-frontend-deploy '$IMAGE_TAG'"

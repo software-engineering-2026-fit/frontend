@@ -1,4 +1,3 @@
-const API_BASE_URL = 'http://localhost:8000'
 const TOKEN_STORAGE_KEY = 'fit_access_token'
 
 export interface User {
@@ -44,14 +43,18 @@ function isAccessToken(value: unknown): value is AccessToken {
   )
 }
 
-export async function requestApi(path: string, init?: RequestInit): Promise<unknown> {
+export async function requestApi(
+  apiBaseUrl: string,
+  path: string,
+  init?: RequestInit
+): Promise<unknown> {
   let response: Response
 
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, init)
+    response = await fetch(`${apiBaseUrl}${path}`, init)
   } catch (error) {
     throw new Error(
-      `Could not connect to ${API_BASE_URL}. Make sure the API is running and allows this frontend origin.`,
+      `Could not connect to ${apiBaseUrl}. Make sure the API is running and allows this frontend origin.`,
       { cause: error }
     )
   }
@@ -75,8 +78,8 @@ export async function requestApi(path: string, init?: RequestInit): Promise<unkn
   return result
 }
 
-async function fetchCurrentUser(token: string): Promise<User> {
-  const result = await requestApi('/auth/me', {
+async function fetchCurrentUser(token: string, apiBaseUrl: string): Promise<User> {
+  const result = await requestApi(apiBaseUrl, '/auth/me', {
     headers: { authorization: `Bearer ${token}` }
   })
 
@@ -88,6 +91,7 @@ async function fetchCurrentUser(token: string): Promise<User> {
 }
 
 export function useAuth() {
+  const apiBaseUrl = useRuntimeConfig().public.apiBaseUrl
   const user = useState<User | null>('auth-user', () => null)
   const isInitialized = useState('auth-initialized', () => false)
   const isInitializing = useState('auth-initializing', () => false)
@@ -114,7 +118,7 @@ export function useAuth() {
     try {
       const token = getToken()
       if (token) {
-        user.value = await fetchCurrentUser(token)
+        user.value = await fetchCurrentUser(token, apiBaseUrl)
       }
     } catch (error) {
       if (error instanceof ApiRequestError && error.statusCode === 401) {
@@ -138,7 +142,7 @@ export function useAuth() {
         username: email.trim(),
         password
       })
-      const token = await requestApi('/auth/token', {
+      const token = await requestApi(apiBaseUrl, '/auth/token', {
         method: 'POST',
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
         body: form
@@ -148,7 +152,7 @@ export function useAuth() {
         throw new Error('The API returned an invalid access token.')
       }
 
-      const signedInUser = await fetchCurrentUser(token.access_token)
+      const signedInUser = await fetchCurrentUser(token.access_token, apiBaseUrl)
       window.sessionStorage.setItem(TOKEN_STORAGE_KEY, token.access_token)
       user.value = signedInUser
       isInitialized.value = true
@@ -166,7 +170,7 @@ export function useAuth() {
     errorMessage.value = null
 
     try {
-      const result = await requestApi('/auth/register', {
+      const result = await requestApi(apiBaseUrl, '/auth/register', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
