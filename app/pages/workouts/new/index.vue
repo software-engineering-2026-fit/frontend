@@ -164,12 +164,7 @@ async function createWorkout() {
 
     <header class="mt-7 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p class="mb-2 text-xs font-bold tracking-[0.18em] text-violet-700">BUILD YOUR PLAN</p>
-        {{ builder.exercises }}
-        <h1 class="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Create a workout</h1>
-        <p class="mt-2 max-w-xl text-sm leading-6 text-slate-600 sm:text-base">
-          Name your plan and choose the exercises you want to train.
-        </p>
+        <h1 class="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Create workout</h1>
       </div>
     </header>
 
@@ -217,7 +212,7 @@ async function createWorkout() {
           class="mt-5 rounded-2xl border border-dashed border-violet-200 bg-violet-50/50 px-4 py-8 text-center"
         >
           <p class="text-sm font-semibold text-slate-800">No exercises found</p>
-          <p class="mt-1 text-sm text-slate-500">Add your own exercise to start building this plan.</p>
+          <p class="mt-1 text-sm text-slate-500">No matching exercises.</p>
         </div>
         <ul v-else class="mt-5 grid gap-2 sm:grid-cols-2" aria-label="Exercise catalog">
           <li v-for="exercise in exercises" :key="exercise.id">
@@ -349,7 +344,7 @@ async function createWorkout() {
           </span>
         </div>
         <p v-if="!builder.exercises.value.length" class="mt-4 rounded-xl bg-slate-50 px-4 py-5 text-center text-sm text-slate-500">
-          Select an exercise to add it to your plan.
+          No exercises selected.
         </p>
         <ol v-else class="mt-4 space-y-2 ">
           <li

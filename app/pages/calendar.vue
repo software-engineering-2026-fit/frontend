@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import type { WorkoutLog } from '../composables/useWorkouts'
+
 const workoutData = useWorkouts()
 const visibleMonth = ref(new Date(new Date().getFullYear(), new Date().getMonth(), 1))
+const selectedLog = ref<WorkoutLog | null>(null)
 
 const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
@@ -14,6 +17,7 @@ function dateKey(date: Date): string {
 }
 
 function shiftMonth(amount: number) {
+  selectedLog.value = null
   visibleMonth.value = new Date(
     visibleMonth.value.getFullYear(),
     visibleMonth.value.getMonth() + amount,
@@ -81,9 +85,7 @@ onMounted(() => {
   <main class="mx-auto w-full max-w-6xl px-4 pb-14 pt-8 sm:px-6 sm:pt-10 lg:px-8">
     <header class="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p class="mb-2 text-xs font-bold tracking-[0.18em] text-violet-700">YOUR PROGRESS, AT A GLANCE</p>
         <h1 class="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Workout history</h1>
-        <p class="mt-2 text-sm text-slate-500">Your previous workouts, all in one place.</p>
       </div>
       <div class="inline-flex w-fit items-center gap-2 rounded-full border border-violet-100 bg-white px-4 py-2 text-sm shadow-sm">
         <span class="size-2 rounded-full bg-fuchsia-500" aria-hidden="true" />
@@ -92,8 +94,8 @@ onMounted(() => {
       </div>
     </header>
 
-    <section class="overflow-hidden rounded-3xl border border-violet-100 bg-white shadow-[0_20px_60px_-35px_rgba(91,33,182,0.3)]" aria-label="Workout history calendar">
-      <div class="flex flex-col gap-4 border-b border-violet-100 bg-gradient-to-r from-violet-50 via-fuchsia-50 to-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <section class="overflow-hidden bg-white" aria-label="Workout history calendar">
+      <div class="flex flex-col gap-4 bg-gradient-to-r from-violet-50 via-fuchsia-50 to-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div>
           <h2 class="text-lg font-bold text-slate-900">{{ monthTitle }}</h2>
           <p class="mt-0.5 text-xs text-slate-500">Select a day to log a workout</p>
@@ -141,37 +143,43 @@ onMounted(() => {
       </div>
 
       <div class="grid grid-cols-7">
-        <button
+        <div
           v-for="day in calendarDays"
           :key="day.key"
-          class="group flex min-h-20 min-w-0 flex-col items-stretch gap-1 border-b border-r border-slate-100 p-1.5 text-left transition hover:bg-violet-50/70 sm:min-h-28 sm:gap-1.5 sm:p-2.5"
+          class="flex min-h-20 min-w-0 flex-col items-stretch gap-1 border-b border-r border-slate-100 p-1.5 sm:min-h-28 sm:gap-1.5 sm:p-2.5"
           :class="[
             day.isCurrentMonth ? 'bg-white' : 'bg-slate-50/70 text-slate-400',
             day.isToday ? 'ring-2 ring-inset ring-violet-400' : ''
           ]"
-          type="button"
-          :aria-label="`${day.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}${day.logs.length ? `, ${day.logs.length} workout${day.logs.length === 1 ? '' : 's'}` : ''}. Click to log a workout.`"
-          @click="selectDate(day.date)"
         >
-          <span
-            class="grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-medium sm:size-7 sm:text-xs"
-            :class="day.isToday ? 'bg-violet-700 font-bold text-white' : day.isCurrentMonth ? 'text-slate-700' : 'text-slate-400'"
+          <button
+            class="grid size-6 shrink-0 place-items-center self-start rounded-full text-[11px] font-medium hover:bg-violet-100 sm:size-7 sm:text-xs"
+            :class="day.isToday ? 'bg-violet-700 font-bold text-white hover:bg-violet-800' : day.isCurrentMonth ? 'text-slate-700' : 'text-slate-400'"
+            type="button"
+            :aria-label="`Log a workout on ${day.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}`"
+            @click="selectDate(day.date)"
           >
             {{ day.dayNumber }}
-          </span>
-          <span
-            v-for="(log, index) in day.logs.slice(0, 3)"
-            :key="`${log.workoutId}-${index}`"
-            class="block truncate rounded-md bg-fuchsia-100 px-1.5 py-1 text-[9px] font-medium leading-tight text-fuchsia-900 ring-1 ring-inset ring-fuchsia-200 sm:px-2 sm:text-[11px]"
-            :class="day.isCurrentMonth ? '' : 'opacity-55'"
-            :title="log.name"
+          </button>
+          <button
+            v-for="log in day.logs.slice(0, 3)"
+            :key="log.id"
+            class="block w-full truncate rounded-sm bg-fuchsia-100 px-1.5 py-1 text-left text-[9px] font-medium leading-tight text-fuchsia-900 hover:bg-fuchsia-200 sm:px-2 sm:text-[11px]"
+            :class="[
+              day.isCurrentMonth ? '' : 'opacity-55',
+              selectedLog?.id === log.id ? 'bg-violet-700 text-white hover:bg-violet-800' : ''
+            ]"
+            type="button"
+            :title="`View logged details for ${log.name}`"
+            :aria-label="`View logged details for ${log.name}`"
+            @click="selectedLog = log"
           >
             {{ log.name }}
-          </span>
+          </button>
           <span v-if="day.logs.length > 3" class="px-1 text-[9px] font-medium text-violet-700">
             +{{ day.logs.length - 3 }} more
           </span>
-        </button>
+        </div>
       </div>
 
       <footer class="flex flex-col gap-2 bg-white px-4 py-3 text-[11px] text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-6">
@@ -179,15 +187,56 @@ onMounted(() => {
           <span class="size-2 rounded-full bg-fuchsia-500" aria-hidden="true" />
           Logged workout
         </span>
-        <span>Workout history is synced with the API · Select a date to log</span>
+        <span>Select a date to log or a workout to view details</span>
       </footer>
+    </section>
+
+    <section
+      v-if="selectedLog"
+      class="mt-4 border border-violet-200 bg-white"
+      aria-labelledby="logged-workout-title"
+    >
+      <header class="flex items-start justify-between gap-4 border-b border-slate-200 bg-violet-50 px-4 py-3 sm:px-5">
+        <div>
+          <h2 id="logged-workout-title" class="font-semibold text-slate-950">{{ selectedLog.name }}</h2>
+          <p class="mt-0.5 text-sm text-slate-600">Logged {{ workoutData.formatDate(selectedLog.date) }}</p>
+        </div>
+        <button
+          class="shrink-0 px-2 py-1 text-sm font-medium text-violet-800 hover:underline"
+          type="button"
+          @click="selectedLog = null"
+        >
+          Close
+        </button>
+      </header>
+      <div v-if="selectedLog.exercises.length" class="overflow-x-auto">
+        <table class="w-full min-w-[32rem] text-left text-sm">
+          <thead class="border-b border-slate-200 text-xs font-semibold text-slate-600">
+            <tr>
+              <th class="px-4 py-2 sm:px-5">Exercise</th>
+              <th class="px-3 py-2">Weight</th>
+              <th class="px-3 py-2">Reps</th>
+              <th class="px-3 py-2">Effort (1–5)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr v-for="(exercise, index) in selectedLog.exercises" :key="`${exercise.exerciseId}-${index}`">
+              <th class="px-4 py-3 font-medium text-slate-900 sm:px-5">{{ exercise.exerciseName }}</th>
+              <td class="px-3 py-3 text-slate-700">{{ exercise.weight === null ? '—' : `${exercise.weight} kg` }}</td>
+              <td class="px-3 py-3 text-slate-700">{{ exercise.reps ?? '—' }}</td>
+              <td class="px-3 py-3 text-slate-700">{{ exercise.exhaustionLevel ?? '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p v-else class="px-4 py-4 text-sm text-slate-600 sm:px-5">No exercise entries were recorded.</p>
     </section>
 
     <p v-if="workoutData.errorMessage.value" class="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
       {{ workoutData.errorMessage.value }}
     </p>
     <p v-if="!workoutData.workoutLogs.value.length" class="mt-4 text-center text-xs text-slate-500">
-      No workouts logged yet. Select any day to choose a plan and record your first session.
+      No workouts logged.
     </p>
   </main>
 </template>

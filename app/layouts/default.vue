@@ -8,20 +8,20 @@ async function signOut() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-rose-50 via-white to-violet-50 text-slate-900">
-    <header class="sticky top-0 z-20 border-b border-violet-100 bg-white/90 shadow-sm backdrop-blur">
-      <div class="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen bg-white text-slate-900">
+    <header class="sticky top-0 z-20 border-b border-slate-300 bg-white">
+      <div class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <nav class="flex h-full items-center gap-1" aria-label="Main navigation">
           <NuxtLink
-            class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-violet-50 hover:text-violet-800"
-            active-class="!bg-violet-100 !text-violet-900"
+            class="inline-flex h-full items-center border-b-2 border-transparent px-3 text-sm font-semibold text-slate-600 hover:border-slate-400 hover:text-slate-950"
+            active-class="!border-violet-700 !text-slate-950"
             to="/"
           >
             Home
           </NuxtLink>
           <NuxtLink
-            class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-violet-50 hover:text-violet-800"
-            active-class="!bg-violet-100 !text-violet-900"
+            class="inline-flex h-full items-center border-b-2 border-transparent px-3 text-sm font-semibold text-slate-600 hover:border-slate-400 hover:text-slate-950"
+            active-class="!border-violet-700 !text-slate-950"
             to="/workouts"
           >
             Workout plans
@@ -31,12 +31,12 @@ async function signOut() {
         <div class="flex items-center gap-2">
           <NuxtLink
             v-if="auth.user.value"
-            class="grid size-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-800"
-            active-class="!border-violet-300 !bg-violet-100 !text-violet-800"
+            class="grid size-9 shrink-0 place-items-center text-slate-700 hover:bg-violet-50 hover:text-violet-800"
+            active-class="!text-violet-800"
             to="/calendar"
             aria-label="Workout calendar"
           >
-              <svg class="size-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <rect x="4" y="6" width="16" height="14" rx="2" />
                 <path d="M8 4v4M16 4v4M4 10h16M9 14h2v2H9z" />
               </svg>
@@ -44,13 +44,13 @@ async function signOut() {
 
           <template v-if="auth.user.value">
             <NuxtLink
-              class="hidden rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-violet-50 hover:text-violet-800 sm:inline-flex"
+              class="hidden h-9 items-center px-3 text-sm font-semibold text-slate-600 hover:text-slate-950 hover:underline sm:inline-flex"
               to="/account"
             >
               Account
             </NuxtLink>
             <button
-              class="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 text-sm font-semibold text-rose-700 shadow-sm transition hover:border-rose-300 hover:bg-rose-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-500"
+              class="inline-flex h-9 shrink-0 items-center justify-center gap-2 px-2 text-sm font-semibold text-slate-700 hover:text-slate-950"
               type="button"
               @click="signOut"
             >
@@ -62,7 +62,7 @@ async function signOut() {
           </template>
           <NuxtLink
             v-else
-            class="inline-flex min-h-10 items-center justify-center rounded-xl bg-violet-700 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-800"
+            class="inline-flex min-h-9 items-center justify-center bg-violet-700 px-4 text-sm font-semibold text-white hover:bg-violet-800"
             to="/login"
           >
             Sign in

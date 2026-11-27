@@ -22,11 +22,7 @@ onMounted(() => {
   <main class="mx-auto w-full max-w-4xl px-4 pb-16 pt-10 sm:px-6 lg:px-8">
     <div class="mb-7 flex flex-col gap-3 sm:mb-9 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p class="mb-2 text-xs font-bold tracking-[0.18em] text-violet-700">YOUR TRAINING, IN FOCUS</p>
         <h1 class="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Workouts</h1>
-        <p class="mt-2 max-w-xl text-sm leading-6 text-slate-600 sm:text-base">
-          Choose a plan, show up, and keep your progress moving.
-        </p>
       </div>
       <div class="flex items-center gap-3">
         <div class="hidden rounded-2xl border border-violet-100 bg-white/80 px-5 py-3 text-right shadow-sm sm:block">
@@ -48,7 +44,7 @@ onMounted(() => {
       class="overflow-hidden rounded-3xl border border-violet-100 bg-white/90 shadow-[0_20px_60px_-35px_rgba(91,33,182,0.3)]"
       aria-labelledby="active-title"
     >
-      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-violet-100 bg-gradient-to-r from-violet-50 to-fuchsia-50 px-5 py-4 sm:px-7">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-violet-100 bg-white px-5 py-4 sm:px-7">
         <div>
           <h2 id="active-title" class="text-lg font-bold text-slate-900">Active plans</h2>
         </div>
@@ -77,7 +73,7 @@ onMounted(() => {
       <p v-if="workoutData.errorMessage.value" class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
         {{ workoutData.errorMessage.value }}
       </p>
-      <p v-if="workoutData.successMessage.value" class="mb-4 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800" role="status">
+      <p v-if="workoutData.successMessage.value" class="mb-4 flex items-center gap-2 border border-violet-200 bg-violet-50 px-4 py-3 text-sm font-medium text-violet-800" role="status">
         <svg class="size-5 shrink-0" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <path d="m4 10 4 4 8-8" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
         </svg>
@@ -97,7 +93,7 @@ onMounted(() => {
           </svg>
         </span>
         <strong class="block text-sm font-semibold text-slate-800">No workout plans yet</strong>
-        <span class="mt-1 block text-sm text-slate-500">Your workout plans will appear here when they are available.</span>
+        <span class="mt-1 block text-sm text-slate-500">No plans available.</span>
       </div>
       <div v-else class="grid gap-3">
         <article
@@ -106,7 +102,7 @@ onMounted(() => {
           class="group flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-md sm:p-5"
         >
           <div class="flex min-w-0 items-start gap-3 sm:gap-4">
-            <span class="mt-0.5 grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-violet-100 to-fuchsia-100 text-violet-800">
+            <span class="mt-0.5 grid size-10 shrink-0 place-items-center rounded-xl bg-violet-100 text-violet-800">
               <svg class="size-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M6 9v6m12-6v6M3 10v4m18-4v4M6 12h12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
               </svg>

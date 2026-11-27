@@ -4,8 +4,8 @@
       <NuxtPage />
     </NuxtLayout>
     <template #fallback>
-      <main class="grid min-h-screen place-items-center bg-gradient-to-br from-rose-50 via-white to-violet-50 px-4">
-        <p class="rounded-2xl border border-violet-100 bg-white px-6 py-4 text-sm font-medium text-slate-600 shadow-sm">
+      <main class="grid min-h-screen place-items-center bg-white px-4">
+        <p class="border border-slate-300 px-6 py-4 text-sm font-medium text-slate-600">
           Loading Fit…
         </p>
       </main>

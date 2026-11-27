@@ -34,32 +34,20 @@ function setMode(nextMode: 'login' | 'register') {
 <template>
   <main class="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center gap-10 px-4 py-10 sm:px-6 md:grid-cols-2 lg:px-8">
     <section class="hidden md:block">
-      <p class="mb-3 text-xs font-bold tracking-[0.2em] text-violet-700">WELCOME TO FIT</p>
+      <p class="mb-3 text-xs font-bold tracking-[0.2em] text-violet-700">FIT</p>
       <h1 class="max-w-lg text-5xl font-bold leading-tight tracking-tight text-slate-950">
-        Make room for a <span class="text-violet-700">stronger you.</span>
+        Workout training
       </h1>
       <p class="mt-4 max-w-md text-base leading-7 text-slate-600">
-        Your plans, your pace, your progress. Sign in and get back to it.
+        Plans and workout history.
       </p>
-      <div class="mt-8 flex items-center gap-3 text-sm font-medium text-slate-600">
-        <span class="grid size-9 place-items-center rounded-xl bg-violet-100 text-violet-700">
-          <svg class="size-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M6 9v6m12-6v6M3 10v4m18-4v4M6 12h12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
-          </svg>
-        </span>
-        A little progress adds up.
-      </div>
     </section>
 
     <section class="mx-auto w-full max-w-md rounded-3xl border border-violet-100 bg-white p-6 shadow-[0_24px_70px_-35px_rgba(91,33,182,0.35)] sm:p-9" aria-labelledby="login-title">
       <span class="mb-6 grid size-12 place-items-center rounded-2xl bg-violet-700 text-lg font-bold text-white shadow-lg shadow-violet-700/20">F</span>
-      <p class="mb-2 text-xs font-bold tracking-[0.16em] text-violet-700">YOUR TRAINING, IN FOCUS</p>
       <h2 id="login-title" class="text-2xl font-bold tracking-tight text-slate-950">
-        {{ mode === 'login' ? 'Welcome back' : 'Create your account' }}
+        {{ mode === 'login' ? 'Sign in' : 'Create account' }}
       </h2>
-      <p class="mt-2 mb-7 text-sm leading-6 text-slate-500">
-        {{ mode === 'login' ? 'Sign in to see and log your workout plans.' : 'Join Fit and start building your workout routine.' }}
-      </p>
 
       <form v-if="mode === 'register'" class="grid" @submit.prevent="submitRegistration">
         <label class="mb-2 text-sm font-semibold text-slate-700" for="name">Name</label>

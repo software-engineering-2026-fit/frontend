@@ -53,7 +53,6 @@ onMounted(async () => {
     <template v-else-if="workout">
       <header class="mt-7 flex flex-col gap-5 rounded-3xl border border-violet-100 bg-gradient-to-br from-white via-violet-50 to-fuchsia-50 p-6 shadow-sm sm:flex-row sm:items-end sm:justify-between sm:p-9">
         <div>
-          <p class="mb-2 text-xs font-bold tracking-[0.18em] text-violet-700">YOUR TRAINING PLAN</p>
           <h1 class="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">{{ workout.name }}</h1>
           <p v-if="workout.description" class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{{ workout.description }}</p>
           <p class="mt-3 text-sm text-slate-500">{{ exercises.length }} {{ exercises.length === 1 ? 'exercise' : 'exercises' }}</p>
@@ -71,7 +70,6 @@ onMounted(async () => {
         <div class="flex items-center justify-between border-b border-violet-100 px-5 py-4 sm:px-7">
           <div>
             <h2 id="exercise-list-title" class="text-lg font-bold text-slate-900">Exercise plan</h2>
-            <p class="mt-0.5 text-sm text-slate-500">Exercises and plan notes</p>
           </div>
           <span class="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-800">{{ exercises.length }} total</span>
         </div>

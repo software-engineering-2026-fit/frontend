@@ -301,9 +301,8 @@ async function finishSession() {
     </section>
     <template v-else-if="workout">
       <header class="mt-7">
-        <p class="mb-2 text-xs font-bold tracking-[0.18em] text-violet-700">TRACK YOUR PROGRESS</p>
         <h1 class="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-          {{ activeSession ? 'Continue your workout' : 'Log your workout' }}
+          {{ activeSession ? 'Workout session' : 'Log workout' }}
         </h1>
         <p class="mt-2 text-sm text-slate-600">{{ workout.name }}</p>
       </header>
@@ -403,7 +402,7 @@ async function finishSession() {
           <template v-else>Changes sync automatically.</template>
         </p>
         <p v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">{{ errorMessage }}</p>
-        <p v-if="saved" class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800" role="status">
+        <p v-if="saved" class="border border-violet-200 bg-violet-50 px-4 py-3 text-sm font-medium text-violet-800" role="status">
           Workout completed for {{ workoutData.formatDate(workoutData.logDate.value) }} and synced with the API.
         </p>
 
